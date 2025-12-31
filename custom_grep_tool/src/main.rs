@@ -1,30 +1,60 @@
-use std::fs;
+use custom_grep_tool::{search, search_case_insensitive};
 use std::env;
+use std::error::Error;
+use std::fs;
+use std::process;
+
+struct Config {
+    query: String,
+    file_path: String,
+    ignore_case: bool,
+}
+
+impl Config {
+    fn build(args: &[String]) -> Result<Config, &'static str> {
+        if args.len() < 3 {
+            return Err("not enough arguments");
+        }
+
+        let query = args[1].clone();
+        let file_path = args[2].clone();
+
+        let ignore_case = env::var("IGNORE_CASE").is_ok();
+
+        Ok(Config {
+            query,
+            file_path,
+            ignore_case,
+        })
+    }
+}
 
 fn main() {
-    println!("Grep tool!");
-    let args:Vec<String> = env::args().collect();
+    let args: Vec<String> = env::args().collect();
 
-    if args.len()!=3 {
-        println!("Invalid Command format: grep <pattern> <path>");
-        return;
+    let config = Config::build(&args).unwrap_or_else(|err| {
+        eprintln!("Problem parsing arguments: {err}");
+        process::exit(1);
+    });
+
+    if let Err(e) = run(config) {
+        eprintln!("Application error: {e}");
+        process::exit(1);
+    }
+}
+
+fn run(config: Config) -> Result<(), Box<dyn Error>> {
+    let contents = fs::read_to_string(config.file_path)?;
+
+    let results = if config.ignore_case {
+        search_case_insensitive(&config.query, &contents)
+    } else {
+        search(&config.query, &contents)
+    };
+
+    for line in results {
+        println!("{line}");
     }
 
-    let pattern = &args[1];
-    let path = &args[2];
-    println!("Current directory: {:?}", std::env::current_dir().unwrap());
-    println!("Searching for '{}' in '{}'", pattern, path);
-
-    if fs::metadata(path).is_err() {
-        println!("Error: File '{}' does not exist.", path);
-        return;
-    }
-
-    let file_content = fs::read_to_string(path).expect("File Does Not Exists");
-
-    for file_line in file_content.lines() {
-        if file_line.contains(pattern){
-            println!("{}",file_line);
-        }
-    }
+    Ok(())
 }
