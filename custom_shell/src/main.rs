@@ -8,7 +8,7 @@ mod command;
 fn main() {
     let env_args: Vec<String> = env::args().collect();
 
-    let linux = env_args[0] == "--linux";
+    let linux = env_args[0] == "--local";
     if linux {
         println!("----------------Using Linux Commands----------------");
     } else {
