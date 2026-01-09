@@ -38,4 +38,14 @@ impl Db {
             return Err("no such key found");
         }
     }
+
+    pub fn delete(&mut self, arr: &[String]) -> Result<&str, &'static str> {
+        let key = &arr[1];
+        let res = self.entries.remove(key);
+
+        match res {
+            Some(_res) => Ok("r Ok"),
+            None => Ok("Ok"),
+        }
+    }
 }
