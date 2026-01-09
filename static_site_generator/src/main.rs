@@ -2,17 +2,14 @@ use actix_files::NamedFile;
 use actix_web::{App, HttpRequest, HttpServer, web};
 use std::{
     env::{self},
-    error::Error,
-    fmt::format,
-    fs::{self, Metadata},
-    path::PathBuf,
+    fs::{self},
+    path::{Path, PathBuf},
 };
 
 mod convertor;
 
 const STATIC_FOLDER: &str = "static";
 const CONTENT_FOLDER: &str = "content";
-const TEMPLATE_FOLDER: &str = "templates";
 
 async fn index(req: HttpRequest) -> actix_web::Result<NamedFile> {
     let path: PathBuf = req.match_info().query("filename").parse().unwrap();
@@ -31,7 +28,7 @@ fn parse_args(args: &[String]) -> Commands {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let args: Vec<String> = env::args().collect();
-    let Commands { dev } = parse_args(&args);
+    let Commands { dev: _dev } = parse_args(&args);
 
     let files = match flat_map_file_name(CONTENT_FOLDER) {
         Ok(v) => v,
@@ -45,13 +42,20 @@ async fn main() -> std::io::Result<()> {
                 panic!("There is an error opening file. {}", e);
             }
         };
-        let path = file
-            .replace(CONTENT_FOLDER, STATIC_FOLDER)
-            .replace(".md", ".html");
+
+        let source_path = Path::new(&file);
+        let relative_path = source_path.strip_prefix(CONTENT_FOLDER).unwrap();
+        let target_path = Path::new(STATIC_FOLDER)
+            .join(relative_path)
+            .with_extension("html");
+
+        if let Some(parent) = target_path.parent() {
+            fs::create_dir_all(parent)?;
+        }
 
         let html = convertor::markdown_to_html(&content);
 
-        fs::write(path, html)?;
+        fs::write(target_path, html)?;
     }
 
     HttpServer::new(|| App::new().route("/{filename:.*}", web::get().to(index)))
@@ -66,21 +70,19 @@ fn flat_map_file_name(path: &str) -> Result<Vec<String>, std::io::Error> {
     let mut result: Vec<String> = vec![];
     for file in files {
         let file = file?;
-        let name = match file.file_name().into_string() {
-            Ok(v) => v,
-            Err(e) => panic!("invalid file exists"),
-        };
-        let metadata = file.metadata()?;
+        let path_obj = file.path();
 
-        if metadata.is_dir() {
+        if path_obj.is_dir() {
             println!("dir");
-            let cur_dir = &format!("{}/{}", path, name)[..];
-            println!("{cur_dir}");
+            let cur_dir = path_obj.to_str().unwrap();
+            println!("{}", cur_dir);
             let mut ans = flat_map_file_name(cur_dir)?;
             result.append(&mut ans);
-        } else if metadata.is_file() {
+        } else if path_obj.is_file() {
             println!("file");
-            result.push(String::from(format!("{}/{}", path, name).trim()));
+            if let Some(s) = path_obj.to_str() {
+                result.push(String::from(s));
+            }
         }
     }
 

@@ -25,10 +25,16 @@ fn main() {
     }
 
     while position < content.len() {
+        if position + 8 > content.len() {
+             println!("Unexpected end of file reading info");
+             break;
+        }
+
         let chunk_length: &[u8] = &content[position..position + 4];
 
         let bytes: [u8; 4] = chunk_length.try_into().expect("error");
         let length = u32::from_be_bytes(bytes);
+        
         let chunk_type: &[u8] = &content[position + 4..position + 8];
 
         let type_name: &str = std::str::from_utf8(chunk_type).unwrap_or("????");

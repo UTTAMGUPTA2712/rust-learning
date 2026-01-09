@@ -2,3 +2,5 @@
 
 Convert Markdown files into HTML using templates (use the pulldown-cmark crate).
 You'll learn about File I/O, Iterators, and how to organize larger projects using Modules and Crates.
+
+Check site at http://localhost:8080/static/blog/index.html

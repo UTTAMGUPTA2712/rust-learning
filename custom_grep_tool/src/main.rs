@@ -1,7 +1,8 @@
-use custom_grep_tool::{search, search_case_insensitive};
+use custom_grep_tool::{search_buffer, search_case_insensitive_buffer};
 use std::env;
 use std::error::Error;
-use std::fs;
+use std::fs::File;
+use std::io::BufReader;
 use std::process;
 
 struct Config {
@@ -47,12 +48,13 @@ fn main() {
 }
 
 fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let contents = fs::read_to_string(config.file_path)?;
+    let file = File::open(config.file_path)?;
+    let reader = BufReader::new(file);
 
     let results = if config.ignore_case {
-        search_case_insensitive(&config.query, &contents)
+        search_case_insensitive_buffer(&config.query, reader)
     } else {
-        search(&config.query, &contents)
+        search_buffer(&config.query, reader)
     };
 
     for line in results {

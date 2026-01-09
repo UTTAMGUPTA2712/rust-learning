@@ -1,4 +1,4 @@
-pub fn run(args: Vec<&str>) {
+pub fn run(args: Vec<String>) {
     let args = args[1..].join(" ");
-    println!("{:?}", args.trim());
+    println!("{}", args.trim());
 }
