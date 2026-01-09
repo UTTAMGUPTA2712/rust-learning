@@ -14,5 +14,4 @@ This repository contains a collection of Rust programming exercises and examples
 4. [Custom Grep Tool](./custom_grep_tool/Readme.md) : After Chapter 12 of The Rust Book.
 5. [Static Site Generator](./static_site_generator/Readme.md) : After Chapter 13 of The Rust Book.
 6. [Custom Shell](./custom_shell/Readme.md) : After Chapter 12 of The Rust Book and documentation of STD::process module.
-7. [A Redis-lite Key-Value Store](./redis_lite/Readme.md) : After Chapter 16 of The Rust Book.
-8. [A Single-threaded BitTorrent Client](./single_threaded_bit_torrent_client/Readme.md) : After Chapter 17 of The Rust Book.
+7. [A Redis-lite Key-Value Store](./redis_lite/Readme.md) : After Chapter 17 of The Rust Book.
